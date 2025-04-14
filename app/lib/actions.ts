@@ -36,8 +36,7 @@ export async function createInvoice(formData: FormData) {
         `;
     } catch (error) {
         if (error instanceof Error) {
-            console.error("can't create invoice");
-            console.error(error);
+            throw new Error("can't create invoice");
         }
     }
 
@@ -62,8 +61,7 @@ export async function updateInvoice(id: string, formData: FormData) {
         `;
     } catch (error) {
         if (error instanceof Error) {
-            console.error("can't update invoice");
-            console.error(error);
+            throw new Error("can't update invoice");
         }
     }
 
@@ -76,8 +74,7 @@ export async function deleteInvoice(id: string) {
         await sql`DELETE FROM invoices WHERE id = ${id}`;
     } catch (error) {
         if (error instanceof Error) {
-            console.error("can't delete invoice");
-            console.error(error);
+            throw new Error("can't delete invoice");
         }
     }
 
