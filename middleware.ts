@@ -1,11 +1,8 @@
-import {NextRequest, NextResponse} from "next/server";
+import NextAuth from 'next-auth';
+import { authConfig } from './auth.config';
 
-export function middleware(request: NextRequest) {
-    const token = request.cookies.get("authjs.session-token");
-    console.log("token: ", token)
-    return NextResponse.next();
-}
+export default NextAuth(authConfig).auth;
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/profile/:path*", "/auth/:path*"],
+    matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
 };
