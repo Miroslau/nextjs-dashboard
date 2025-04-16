@@ -86,8 +86,11 @@ const SignInForm = () => {
                Sign in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
            </Button>
            <div className="w-full mx-auto my-4 flex gap-x-2.5 items-center justify-evenly before: mr-4 before:block before:h-px before:flex-grow before:bg-stone-400 after:ml:4 after:block after:h-px after:flex-grow after:bg-stone-400">or</div>
+           <Button className="mt-4 w-full justify-center" type="button">
+               Sign in with Google
+           </Button>
            <p className="w-full text-center text-sm text-gray-600 mt-2">
-               If you don&apos;t have an account, please&nbsp;
+               Don&apos;t have an account yet?&nbsp;
                <Link className="text-blue-500 hover:underline" href="/sign-up">Sign up</Link>
            </p>
        </form>
