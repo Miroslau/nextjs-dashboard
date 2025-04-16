@@ -5,6 +5,9 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import postgres from 'postgres';
 import * as process from "node:process";
+import {User} from "@/app/lib/definitions";
+import {signIn} from "@/app/api/auth/[...nextauth]/route";
+import { AuthError } from 'next-auth';
 
 export type State = {
     errors?: {
@@ -102,4 +105,45 @@ export async function deleteInvoice(id: string) {
     }
 
     revalidatePath('/dashboard/invoices');
+}
+
+export async function getUser(email: string): Promise<User | undefined> {
+    try {
+        const user = await sql<User[]>`SELECT * FROM users WHERE email=${email}`;
+        return user[0];
+    } catch (error) {
+        console.error('Failed to fetch user:', error);
+        throw new Error('Failed to fetch user.');
+    }
+}
+
+export async function createUser(user: User) {
+    try {
+        await sql`
+            INSERT INTO users (id, name, email, password) 
+            VALUES (${user.id}, ${user.name}, ${user.email}, ${user.password})
+        `;
+        return user;
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error(error);
+            throw new Error("Database Error: Failed to Create User.");
+        }
+    }
+}
+
+export async function authenticate(prevState: string | undefined, formData: FormData) {
+    try {
+        await signIn('credentials', formData);
+    } catch (error) {
+        if (error instanceof AuthError) {
+            switch (error.type) {
+                case 'CredentialsSignin':
+                    return 'Invalid credentials.';
+                default:
+                    return 'Something went wrong.';
+            }
+        }
+        throw error;
+    }
 }
