@@ -8,11 +8,12 @@ import {Button} from "@/app/ui/button";
 import Link from "next/link";
 import {signUpSchema} from "@/app/zodSchema/sign-in.schema";
 import {useForm} from "react-hook-form";
+import {useRouter} from "next/navigation";
 
 type FormData = z.infer<typeof signUpSchema>
 
 const SignUpForm = () => {
-
+    const router = useRouter();
     const {
         handleSubmit, register, formState: {
             errors,
@@ -21,11 +22,33 @@ const SignUpForm = () => {
             isValid
         }
     } = useForm<FormData>({
-        resolver: zodResolver(signUpSchema)
+        resolver: zodResolver(signUpSchema),
+        defaultValues: {
+            name: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
+        }
     });
 
     const onSubmit = async (data: FormData) => {
-        console.log("form data: ", data)
+        const response = await fetch('/api/user', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: data.name,
+                email: data.email,
+                password: data.password,
+            }),
+        })
+
+        if (response.ok) {
+            router.push("/sign-in");
+        } else {
+            console.error('Registration failed.');
+        }
     }
 
     return (

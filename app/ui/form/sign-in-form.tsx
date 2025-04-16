@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react';
+import React, {startTransition, useRef} from 'react';
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {signInSchema} from "@/app/zodSchema/sign-in.schema";
@@ -8,29 +8,40 @@ import {useForm} from "react-hook-form";
 import {KeyIcon, AtSymbolIcon, ArrowRightIcon} from "@heroicons/react/24/outline";
 import {Button} from "@/app/ui/button";
 import Link from "next/link";
+import { useActionState } from 'react';
+import { authenticate } from '@/app/lib/actions';
+import { useSearchParams } from 'next/navigation';
+import {ExclamationCircleIcon} from "@heroicons/react/24/solid";
 
 type FormData = z.infer<typeof signInSchema>
 
 const SignInForm = () => {
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+    const [errorMessage, formAction, isPending] = useActionState(
+        authenticate,
+        undefined,
+    );
+    const formRef = useRef<HTMLFormElement>(null);
     const {
         handleSubmit,
         register,
-        formState: {
-            errors,
-            isSubmitting,
-            isDirty,
-            isValid
-        }
+        formState: { errors },
     } = useForm<FormData>({
         resolver: zodResolver(signInSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+        }
     });
 
-    const onSubmit = async (data: FormData) => {
-        console.log("form data: ", data)
-    }
-
     return (
-       <form action="" method="POST" onSubmit={handleSubmit(onSubmit)}>
+       <form action={formAction} ref={formRef} onSubmit={(evt) => {
+           evt.preventDefault();
+           handleSubmit(() => {
+               startTransition(() => formAction(new FormData(formRef.current!)));
+           })(evt)
+       }}>
            <div className="w-full">
                <div>
                    <label
@@ -82,9 +93,22 @@ const SignInForm = () => {
                    )}
                </div>
            </div>
-           <Button className="mt-4 w-full" type="submit">
+           <input type="hidden" name="redirectTo" value={callbackUrl} />
+           <Button className="mt-4 w-full" type="submit" aria-disabled={isPending}>
                Sign in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
            </Button>
+           {
+               errorMessage && (
+                   <div
+                       className="flex h-8 items-end space-x-1"
+                       aria-live="polite"
+                       aria-atomic="true"
+                   >
+                       <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
+                       <p className="text-sm text-red-500">{errorMessage}</p>
+                   </div>
+               )
+           }
            <div className="w-full mx-auto my-4 flex gap-x-2.5 items-center justify-evenly before: mr-4 before:block before:h-px before:flex-grow before:bg-stone-400 after:ml:4 after:block after:h-px after:flex-grow after:bg-stone-400">or</div>
            <Button className="mt-4 w-full justify-center" type="button">
                Sign in with Google
